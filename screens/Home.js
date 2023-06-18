@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState } from "react";
 import {
   View,
   Text,
@@ -56,20 +56,22 @@ const Home = () => {
   }
 
   const finishRecording = (uri) => {
-    alert("Do you want to submit the audio recording?", [
-      {
-        text: "Cancel",
-        onPress: () => console.log("Cancel Pressed"),
-        style: "cancel",
-      },
-      {
-        text: "OK",
-        onPress: () => {
-          console.log("OK Pressed");
-          sendAudioFile(uri);
-        },
-      },
-    ]);
+    console.log(uri);
+    sendAudioFile(uri);
+    // alert("Do you want to submit the audio recording?", [
+    //   {
+    //     text: "Cancel",
+    //     onPress: () => console.log("Cancel Pressed"),
+    //     style: "cancel",
+    //   },
+    //   {
+    //     text: "OK",
+    //     onPress: () => {
+    //       console.log("OK Pressed");
+    //       sendAudioFile(uri);
+    //     },
+    //   },
+    // ]);
   };
 
   async function stopRecording() {
@@ -86,34 +88,25 @@ const Home = () => {
     finishRecording(uri);
   }
 
-  floatingButtonClicked = () => {
+  const floatingButtonClicked = () => {
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+    if (recording) stopRecording();
+    else startRecording();
     setIsRecording((isRecording) => !isRecording);
-    if (recording) {
-      stopRecording();
-
-      //setIsRecording(false);
-      //setResetTimer(true);
-    } else {
-      startRecording();
-      //setIsRecording(true);
-      //setResetTimer(false);
-    }
   };
 
-  donePressed = () => {
+  const donePressed = () => {
     setModalVisible(false);
-    //sendText()
   };
 
-  sendText = async () => {
+  const sendText = async () => {
     const baseUrl = "";
     try {
       const response = await axios.post(`${baseUrl}/api/text`, {
         text: input,
       });
 
-      if (response.status === 201) {
+      if (response.status === 200) {
         console.log(` You have created: ${JSON.stringify(response.data)}`);
       } else {
         throw new Error("An error has occurred");
@@ -128,7 +121,9 @@ const Home = () => {
     const formData = new FormData();
     formData.append("audio", { uri, name: "recording", filetype: "audio/m4a" });
 
-    const baseUrl = "";
+    console.log("submitting");
+
+    const baseUrl = "http://localhost:3000";
     try {
       const response = await axios.post(`${baseUrl}/audio/upload`, formData, {
         headers: {
@@ -137,16 +132,14 @@ const Home = () => {
         },
       });
 
-      console.log(response);
-
-      if (response.status === 201) {
-        console.log(` You have created: ${JSON.stringify(response.data)}`);
+      if (response.status === 200) {
+        alert(JSON.stringify(response.data))
       } else {
         throw new Error("An error has occurred");
       }
     } catch (error) {
-      alert("An error has occurred");
-      setIsLoading(false);
+        console.log(error);
+        alert("An error has occurred");
     }
   };
 
