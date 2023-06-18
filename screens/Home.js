@@ -1,5 +1,5 @@
 import React, {useState, useEffect} from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, Image, TextInput } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity, Image, TextInput, Alert } from 'react-native';
 import ButtonBox from "../components/ButtonBox"
 import { screenHeight, screenWidth } from '../styles/CommonStyles';
 import Modal from 'react-native-modal';
@@ -10,6 +10,19 @@ import axios from 'axios';
 
 const Home = () => {
 
+    const emotions = [
+        {name: 'Happy', percentage: 70}, 
+        {name: 'Stress', percentage: 20}, 
+        {name: 'Calm', percentage: 10}
+    ]
+
+    const spheres = [
+        {name: 'Gym'}, 
+        {name: 'Friends'}, 
+        {name: 'School'}
+    ]
+
+
     const [isModalVisible, setModalVisible] = useState(false);
     const [input, setInput] = useState("");
     
@@ -17,7 +30,7 @@ const Home = () => {
     const [resetTimer, setResetTimer] = useState(false);
 
     const [recording, setRecording] = useState();
-
+    const [emotion, setEmotion] = useState(false);
     
     async function startRecording() {
         try {
@@ -38,6 +51,21 @@ const Home = () => {
         }
     }  
 
+    const finishRecording = (uri) => {
+        alert('Do you want to submit the audio recording?', [
+            {
+              text: 'Cancel',
+              onPress: () => console.log('Cancel Pressed'),
+              style: 'cancel',
+            },
+            {text: 'OK', onPress: () => {
+                console.log('OK Pressed')
+                sendAudioFile(uri)
+                //setEmotion(true)
+            }},
+        ]);
+    }
+
     async function stopRecording() {
         console.log('Stopping recording..');
         setResetTimer(true);
@@ -46,21 +74,13 @@ const Home = () => {
         await Audio.setAudioModeAsync({
             allowsRecordingIOS: false,
         })
-        const uri = recording.getURI();
+        const uri = await recording.getURI();
         console.log('Recording stopped and stored at', uri);
 
-        Alert.alert('Do you want to submit the audio recording?', [
-            {
-              text: 'Cancel',
-              onPress: () => console.log('Cancel Pressed'),
-              style: 'cancel',
-            },
-            {text: 'OK', onPress: () => {
-                console.log('OK Pressed')
-                sendAudioFile(recording)
-            }},
-        ]);
+        finishRecording(uri);
     } 
+
+    
     
 
     floatingButtonClicked = () => {
@@ -68,7 +88,7 @@ const Home = () => {
         setIsRecording((isRecording) => !isRecording);
         if (recording) {
             stopRecording()
-       
+    
                 //setIsRecording(false);
                 //setResetTimer(true);
             
@@ -82,7 +102,7 @@ const Home = () => {
 
     donePressed = () => {
         setModalVisible(false);
-        sendText()
+        //sendText()
     }
 
     sendText = async () => {
@@ -105,12 +125,20 @@ const Home = () => {
     }
     
 
-    sendAudioFile = async (recording) => {
+    const sendAudioFile = async (recording) => {
+        const formData = new FormData();
+        formData.append('audio', {uri, name: "recording", })
+
         const baseUrl = ""
         try {
-            const response = await axios.post(`${baseUrl}/api/audiofiles`, {
-              audio: recording
+            const response = await axios.post(`${baseUrl}/audio/upload`, formData, {
+                headers: {
+                    "Accept": "application/json",
+                    "Content-Type": "multipart/form-data",
+                }
             });
+
+            console.log(response);
       
             if (response.status === 201) {
               console.log(` You have created: ${JSON.stringify(response.data)}`);
@@ -124,6 +152,7 @@ const Home = () => {
     }
 
     modalButtonClicked = () => {
+        setInput("")
         setModalVisible(true)
     }
 
@@ -141,6 +170,38 @@ const Home = () => {
             <TouchableOpacity onPress={modalButtonClicked}>
             <ButtonBox title={'Add a thought!'} subtitle={'What is on your mind?'}/>
             </TouchableOpacity>
+
+            {emotion ?
+            <View style={styles.boxContainer}>
+                <View style={styles.boxHeader}>
+                    <Text style={{fontSize: 22, fontWeight: '600'}}>Analysis</Text>
+                </View>
+
+                <View style={{flexDirection: 'row', flex: 1}}>
+                <View style={{flexDirection: 'column', flex: 1}}>
+                <View style={styles.boxHeader}>
+                    <Text style={{fontSize: 18, fontWeight: '600', textDecorationStyle: 'solid', textDecorationLine: 'underline'}}>Spheres</Text>
+                </View>
+                {spheres.map((sphere, index) => (
+                <View style={styles.boxList}>
+                    <Text style={{fontSize: 16, fontWeight: '600'}}>{sphere.name}</Text>
+                </View> ))}
+                </View>
+                
+                <View style={{flexDirection: 'column', flex: 1}}>
+                <View style={styles.boxHeader}>
+                    <Text style={{fontSize: 18, fontWeight: '600', textDecorationStyle: 'solid', textDecorationLine: 'underline'}}>Emotions</Text>
+                </View>
+                {emotions.map((emotion, index) => (
+                <View style={styles.boxList}>
+                    <Text style={{fontSize: 16, fontWeight: '600'}}>{emotion.name}</Text>
+                </View> ))}
+                </View>
+                </View>
+
+
+
+            </View> : null}
 
             <TouchableOpacity activeOpacity={0.5} onPress={() => floatingButtonClicked()} style={styles.floatingButton} >
                 {isRecording ? 
@@ -271,40 +332,47 @@ const styles = StyleSheet.create({
         marginHorizontal: 30,
         marginTop: 20,
         fontSize: 18
-    }
+    },
+    boxHeader: {
+        flexDirection: 'row',
+        borderRadius: 20,                
+        alignItems: 'center',
+        height: 40,
+        marginHorizontal: 25,
+        borderRadius: 5,
+        alignSelf: 'stretch',
+        justifyContent: 'space-between',
+        backgroundColor: 'white',
+        marginVertical: 5
+    },
+    boxList: {
+        flexDirection: 'row',
+        borderRadius: 20,                
+        alignItems: 'center',
+        height: 20,
+        marginHorizontal: 25,
+        borderRadius: 5,
+        alignSelf: 'stretch',
+        justifyContent: 'space-between',
+        backgroundColor: 'white',
+        marginVertical: 3
+    },
+    boxContainer: {
+        borderRadius: 20,
+        shadowOpacity: 0.4,
+        elevation: 3,
+        shadowRadius: 5 ,
+        shadowOffset : { width: 0.5, height: 3},
+        backgroundColor: 'white',
+        height: screenHeight/3,
+        //width: screenWidth ,
+        marginVertical: 20,
+        backgroundColor: 'white',
+        marginHorizontal: 20
+      }
 })
 
 export default Home;
 
 
 
-
-// const [time, setTime] = useState({min: 0, sec: 0})
-    // const [seconds, setSeconds] = useState(120)
-    // const [isRecording, setIsRecording] = useState(false)
-
-    // useEffect(() => {
-    //     if (!isRecording | seconds <= 0) {
-    //         setTime({min: 0, sec: 0})
-    //         setSeconds(120);
-    //     }
-    //     const timerId = setInterval(() => {
-    //         setSeconds((seconds) => seconds - 1)
-    //     }, 1000)
-
-    //     return () => {
-    //         clearInterval(timerId);
-    //         setIsRecording(!isRecording)
-    //       };
-    // }, [isRecording])
-
-    // useEffect(() => {
-    //     if (seconds == 0) {
-    //         setIsRecording(!isRecording)
-    //         setTime({min: 0, sec: 0})
-    //     } else {
-    //         let min = Math.floor(seconds / 60)
-    //         let sec = seconds % 60
-    //         setTime({min: min, sec: sec})
-    //     }
-    // }, [seconds])
