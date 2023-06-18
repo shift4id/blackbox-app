@@ -3,10 +3,12 @@ import {View, StyleSheet, Image, Text, TouchableNativeFeedback} from 'react-nati
 
 const ButtonBox = (props) => {
 
-    
+    boxClicked = () => {
+
+    }
 
     return (
-        <TouchableNativeFeedback onPress={boxClicked}>
+        <TouchableNativeFeedback onPress={() => boxClicked()}>
         <View style={styles.dottedBox}>
             <View style={{flexDirection: 'col'}}>
                 <Text>{props.title}</Text>
