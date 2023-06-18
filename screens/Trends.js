@@ -10,12 +10,12 @@ const Trends = () => {
 
   const data = [ 
     { 
-      name: 'Boxing', 
+      name: 'Gym', 
       emotions: [{name: 'Happy', percentage: 70}, {name: 'Stress', percentage: 20}, {name: 'Calm', percentage: 10}]
     },
 
     { 
-      name: 'Classes', 
+      name: 'School', 
       emotions: [{name: 'Happy', percentage: 40}, {name: 'Stress', percentage: 80}]
     },
 
