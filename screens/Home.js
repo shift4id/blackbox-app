@@ -14,7 +14,7 @@ const Home = () => {
     
     const [isRecording, setIsRecording] = useState(false);
     const [resetTimer, setResetTimer] = useState(false);
-    const [duration, setDuration] = useState(120000);
+    //const [duration, setDuration] = useState(120000);
 
     const [recording, setRecording] = useState();
 
@@ -27,10 +27,11 @@ const Home = () => {
                 allowsRecordingIOS: true,
                 playsInSilentModeIOS: true,
             });
-
+            setResetTimer(false);
             console.log('Starting recording..');
             const { recording } = await Audio.Recording.createAsync( Audio.RecordingOptionsPresets.HIGH_QUALITY );
             setRecording(recording);
+            
             console.log('Recording started');
         } catch (err) {
             console.error('Failed to start recording', err);
@@ -39,6 +40,7 @@ const Home = () => {
 
     async function stopRecording() {
         console.log('Stopping recording..');
+        setResetTimer(true);
         setRecording(undefined);
         await recording.stopAndUnloadAsync();
         await Audio.setAudioModeAsync({
@@ -51,21 +53,33 @@ const Home = () => {
 
     floatingButtonClicked = () => {
         Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium)
-        if (isRecording == true) {
-            stopRecording().then(() => {
-                setIsRecording(false);
-                setResetTimer(true);
-            })
+        setIsRecording((isRecording) => !isRecording);
+        if (recording) {
+            stopRecording()
+       
+                //setIsRecording(false);
+                //setResetTimer(true);
+            
         } else {
-            startRecording().then(() => {
-                setIsRecording(true);
-                setResetTimer(false);
-            })
+            startRecording()
+                //setIsRecording(true);
+                //setResetTimer(false);
+            
         }
+    }
+
+    donePressed = () => {
+        //record thought + send to backend
+        setModalVisible(false);
     }
 
     modalButtonClicked = () => {
         setModalVisible(true)
+    }
+
+    closeModal = () => {
+        setInput("")
+        setModalVisible(false);
     }
 
     return(
@@ -93,12 +107,12 @@ const Home = () => {
             </TouchableOpacity>
             <View style={styles.timerText}>
             <Timer
-            totalDuration={duration}
-            start={isRecording}
+            totalDuration={120000}
+            start={recording ? true : false}
             options={styles.timerText}
             reset={resetTimer}
             handleFinish={() => {
-                //stopRecording();
+                stopRecording();
             }}
             />
           </View>
@@ -108,22 +122,28 @@ const Home = () => {
         </View>
         <Modal animationType="slide" 
             transparent visible={isModalVisible} 
-            //presentationStyle="overFullScreen" 
-            //style={styles.modalBackground}
             onBackdropPress = {() => {
                 setModalVisible(false)
             }}
             backdropTransitionOutTiming= {0}
             onDismiss={()=> setModalVisible(false)}
         >
-                <View style={styles.modal}>
-                    <Image source={require('../assets/cross.png')} style={styles.crossButton}/>
+                 <View style={styles.modal}>
+                    <View style={{flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginHorizontal: 20, marginTop: 15}}>
+                    <TouchableOpacity onPress={()=> closeModal()}>
+                        <Image source={require('../assets/cross.png')} style={styles.crossButton}/>
+                    </TouchableOpacity>
+                    <TouchableOpacity onPress={donePressed}>
+                        <Text style={styles.doneButton}>Done</Text>
+                    </TouchableOpacity>
+                    </View>
                     <TextInput placeholder="Type your thoughts..." 
                         value={input} 
                         multiline={true}
+                        maxLength={281}
                         style={styles.textInput} 
                         onChangeText={(value) => setInput(value)} />
-                </View>
+                 </View>
           
 
         </Modal>
@@ -186,12 +206,16 @@ const styles = StyleSheet.create({
         justifyContent: "center",
         backgroundColor: "rgba(0, 0, 0, 0.3)",
     },
-    crossButton: {
+    doneButton: {
         alignSelf: 'flex-end',
-        marginHorizontal: 10,
-        marginVertical: 10,
-        height: 30,
-        width: 30
+        fontWeight: '600',
+        fontSize: 18,
+        color: '#34E0A1'
+    },
+    crossButton: {
+        alignSelf: 'flex-start',
+        height: 25,
+        width: 25
     },
     textInput: {
         marginHorizontal: 30,
