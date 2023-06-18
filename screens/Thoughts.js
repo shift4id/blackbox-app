@@ -3,21 +3,26 @@ import {
   View,
   Text,
   StyleSheet,
-  TouchableOpacity,
-  Image,
-  Button,
   FlatList,
+  ScrollView,
 } from "react-native";
 import ThoughtBox from "../components/ThoughtBox";
 import { SelectMultipleButton } from "react-native-selectmultiple-button";
 import AudioThoughtBox from "../components/AudioThoughtBox";
-// import Ionicons from 'react-native-vector-icons/Ionicons';
 import { Audio } from "expo-av";
+
 const thoughts = [
-  { name: "Thought number one", spheres: [true, false, true, false] },
-  { name: "Thought number two", spheres: [false, true, true, true] },
-  { name: "Thought number three", spheres: [false, false, false, true] },
+  { name: "May 20, 2023 17:00", spheres: [true, false, true, false] },
+  { name: "June 17, 2023 9:00", spheres: [false, true, true, true] },
+  { name: "June 18, 2023 5:00", spheres: [false, false, false, true] },
 ];
+
+const audiothoughts = [
+  { name: "May 25, 2023 17:00", spheres: [true, false, true, false] },
+  { name: "June 17, 2023 10:15", spheres: [false, true, true, true] },
+  { name: "June 18, 2023 5:30", spheres: [false, false, false, true] },
+];
+
 const SPHERES = ["Gym", "Life", "Academics", "Friends"];
 
 const assets = [
@@ -45,13 +50,12 @@ const Thoughts = (props) => {
 
   async function playAudioThought(index) {
     console.log("Play audio");
-    const { sound } = await Audio.Sound.createAsync(assets[index]);
+    const { sound } = await Audio.Sound.createAsync(assets[index])
     setSound(sound);
     await sound.playAsync();
   }
 
   useEffect(() => {
-    // if (sound) sound.unloadAsync();
     return sound
       ? () => {
           console.log("Unloading Sound");
@@ -87,7 +91,7 @@ const Thoughts = (props) => {
           }}
         />
       </View>
-
+          <ScrollView>
       {thoughts.map((thought, index) => {
         return (
           <ThoughtBox
@@ -97,7 +101,7 @@ const Thoughts = (props) => {
           />
         );
       })}
-      {thoughts.map((thought, index) => {
+      {audiothoughts.map((thought, index) => {
         return thoughtFiltered(thought, index) ? (
           <AudioThoughtBox
             title={thought.name}
@@ -108,6 +112,7 @@ const Thoughts = (props) => {
           />
         ) : null;
       })}
+      </ScrollView>
     </View>
   );
 };

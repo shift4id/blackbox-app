@@ -11,18 +11,20 @@
   "dependencies": {
     "@react-navigation/bottom-tabs": "^6.5.7",
     "@react-navigation/native": "^6.1.6",
+    "axios": "^1.4.0",
     "expo": "~48.0.18",
     "expo-av": "~13.2.1",
     "expo-haptics": "~12.2.1",
     "expo-status-bar": "~1.4.4",
+    "immutability-helper": "^3.1.1",
     "react": "18.2.0",
     "react-native": "^0.71.8",
     "react-native-asset": "^2.1.1",
-    "react-native-charts-wrapper": "^0.5.11",
     "react-native-modal": "^13.0.1",
     "react-native-selectmultiple-button": "^0.1.105",
     "react-native-sound": "^0.11.2",
-    "react-native-stopwatch-timer": "^0.0.21"
+    "react-native-stopwatch-timer": "^0.0.21",
+    "react-native-svg": "^13.9.0"
   },
   "devDependencies": {
     "@babel/core": "^7.20.0"

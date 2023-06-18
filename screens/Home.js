@@ -6,6 +6,7 @@ import Modal from 'react-native-modal';
 import * as Haptics from 'expo-haptics';
 import { Timer } from 'react-native-stopwatch-timer';
 import { Audio } from 'expo-av';
+import axios from 'axios';
 
 const Home = () => {
 
@@ -14,7 +15,6 @@ const Home = () => {
     
     const [isRecording, setIsRecording] = useState(false);
     const [resetTimer, setResetTimer] = useState(false);
-    //const [duration, setDuration] = useState(120000);
 
     const [recording, setRecording] = useState();
 
@@ -48,6 +48,18 @@ const Home = () => {
         })
         const uri = recording.getURI();
         console.log('Recording stopped and stored at', uri);
+
+        Alert.alert('Do you want to submit the audio recording?', [
+            {
+              text: 'Cancel',
+              onPress: () => console.log('Cancel Pressed'),
+              style: 'cancel',
+            },
+            {text: 'OK', onPress: () => {
+                console.log('OK Pressed')
+                sendAudioFile(recording)
+            }},
+        ]);
     } 
     
 
@@ -69,8 +81,46 @@ const Home = () => {
     }
 
     donePressed = () => {
-        //record thought + send to backend
         setModalVisible(false);
+        sendText()
+    }
+
+    sendText = async () => {
+        const baseUrl = ""
+        try {
+            const response = await axios.post(`${baseUrl}/api/text`, {
+              text: input
+            });
+      
+            if (response.status === 201) {
+              console.log(` You have created: ${JSON.stringify(response.data)}`);
+            } else {
+              throw new Error("An error has occurred");
+            }
+          } catch (error) {
+            alert("An error has occurred");
+            console.log(error)
+          }
+
+    }
+    
+
+    sendAudioFile = async (recording) => {
+        const baseUrl = ""
+        try {
+            const response = await axios.post(`${baseUrl}/api/audiofiles`, {
+              audio: recording
+            });
+      
+            if (response.status === 201) {
+              console.log(` You have created: ${JSON.stringify(response.data)}`);
+            } else {
+              throw new Error("An error has occurred");
+            }
+          } catch (error) {
+            alert("An error has occurred");
+            setIsLoading(false);
+          }
     }
 
     modalButtonClicked = () => {
@@ -87,7 +137,7 @@ const Home = () => {
         <View style={{backgroundColor: 'white', flex: 1}}>
             <Text style={styles.headingText}>Welcome Iki,</Text>
             <Text style={styles.headingText}>How has your day been so far?</Text>
-            
+
             <TouchableOpacity onPress={modalButtonClicked}>
             <ButtonBox title={'Add a thought!'} subtitle={'What is on your mind?'}/>
             </TouchableOpacity>
